@@ -185,6 +185,32 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
     return unescapeFromMime(str)
   }
 
+  $scope.tryDecodeContentDisposition = function(str) {
+    var value = unescapeFromMime(str);
+    var match = /filename="([^"]+)"/.exec(value);
+    if (match) {
+      return match[1];
+    }
+    match = /filename\*=.*?'.*?'(.*)/.exec(value);
+    if (match) {
+      return decodeURIComponent(match[1]);
+    }
+    return null
+  }
+
+  $scope.formatAttachement = function(mimePart) {
+    var type = "Unkown type";
+    if (mimePart.Headers["Content-Type"]) {
+      type = $scope.tryDecodeMime(mimePart.Headers["Content-Type"][0])
+    }
+    var label = `${type} (${mimePart.Size} bytes)`;
+    var filename = mimePart.Headers["Content-Disposition"] && $scope.tryDecodeContentDisposition(mimePart.Headers["Content-Disposition"][0]);
+    if (filename) {
+      label = `${filename} - ${label}`;
+    }
+    return label;
+  }
+
   $scope.resizePreview = function() {
     $('.tab-content').height($(window).innerHeight() - $('.tab-content').offset().top);
     $('.tab-content .tab-pane').height($(window).innerHeight() - $('.tab-content').offset().top);
