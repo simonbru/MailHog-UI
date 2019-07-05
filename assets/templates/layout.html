@@ -131,7 +131,7 @@
         </div>
 
         <div class="col-md-10 col-sm-9 content">
-          [: .Content :]
+          <?php include('index.html'); ?>
         </div>
       </div>
     </div>
@@ -149,7 +149,7 @@
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       }
 
-      var apiHost = "[: .APIHost :]";
+      var apiHost = "http://localhost:8025";
       if(apiHost.length > 0 && !endsWith(apiHost, "/")) {
         apiHost += "/";
       }
