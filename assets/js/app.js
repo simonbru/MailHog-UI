@@ -347,13 +347,9 @@ new Vue({
     },
   
     selectMessage(message) {
-      // TODO: setTimeout ?
-      setTimeout(() => {
-        this.resizePreview()
-      }, 0)
       if (this.cache[message.ID]) {
         this.preview = this.cache[message.ID]
-        //reflow();
+        this.$nextTick(() => this.resizePreview())
       } else {
         this.preview = message
         var e = this.startEvent("Loading message", message.ID, "glyphicon-download-alt")
@@ -388,7 +384,7 @@ new Vue({
           data.previewHTML = h
           this.preview = data
           preview = this.cache[message.ID]
-          //reflow();
+          this.$nextTick(() => this.resizePreview())
           e.done()
         })
       }
@@ -396,23 +392,7 @@ new Vue({
   
     toggleHeaders(val) {
       this.previewAllHeaders = val
-      // TODO: setTimeout
-      setTimeout(() => {
-        this.resizePreview()
-      }, 0)
-      var t = window.setInterval(() => {
-        if (val) {
-          if($('#hide-headers').length) {
-            window.clearInterval(t)
-            //reflow();
-          }
-        } else {
-          if ($('#show-headers').length) {
-            window.clearInterval(t)
-            //reflow();
-          }
-        }
-      }, 10)
+      this.$nextTick(() => this.resizePreview())
     },
   
     fileSize(bytes) {
