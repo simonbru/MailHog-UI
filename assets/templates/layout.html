@@ -26,22 +26,20 @@
           </div>
 
           <div class="col-md-10 col-sm-9">
-            <form class="navbar-form navbar-left" role="search">
+            <form @submit.prevent="search('containing', searchText)" class="navbar-form navbar-left" role="search">
               <div class="form-group left-inner-addon">
                 <i class="glyphicon glyphicon-search"></i>
 
                 <input
-                  v-model="searchText"
                   type="text"
-                  ng-key-enter="search('containing', searchText)"
+                  v-model="searchText"
+                  @focus="keepopen = true"
+                  @click.stop
                   class="form-control"
                   autocomplete="off"
                   placeholder="Search"
                   id="search"
-                  ng-focus="keepopen=true"
-                  @click.stop=
                 >
-                <!-- TODO: ng-focus -->
 
                 <div class="list-group" v-if="searchText.length > 0 && keepopen">
                   <a href="#" @click="search('containing', searchText)" class="list-group-item">
@@ -148,8 +146,7 @@
         </div>
       </div>
     </div>
-    <script src="js/jquery-1.11.0.min.js"></script>
-    <script src="js/jquery-ui-1.10.4.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
     <script src="js/bootstrap-3.3.2.min.js"></script>
     <script src="js/vue-2.6.10.js"></script>
     <script src="js/moment-2.8.4.js"></script>

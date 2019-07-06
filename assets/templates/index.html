@@ -28,7 +28,7 @@
 </div>
 
 <div class="messages container-fluid" v-if="!preview && !searching">
-  <div class="msglist-message row" v-for="message in messages" @click="selectMessage(message)">
+  <div class="msglist-message row" v-for="message in messages" :key="message.ID" @click="selectMessage(message)">
     <div class="col-md-3 col-sm-4">
       {{ getSender(message) }}
 
@@ -92,7 +92,7 @@
 </div>
 
 <div class="messages container-fluid" v-if="searching">
-  <div class="msglist-message row" v-for="message in searchMessages" @click="selectMessage(message)">
+  <div class="msglist-message row" v-for="message in searchMessages" :key="message.ID" @click="selectMessage(message)">
     <div class="col-md-3 col-sm-4">
       {{ getSender(message) }}
 
@@ -125,7 +125,7 @@
 
   <div class="spacer"></div>
 
-  <button class="btn btn-default" @click="deleteOne(preview); preview = null">
+  <button class="btn btn-default" @click="deleteOne(preview)">
     <i class="glyphicon glyphicon-trash"></i>
   </button>
 
@@ -198,17 +198,14 @@
     </ul>
 
     <div class="tab-content">
-      <iframe
-        target-blank=""
+      <html-preview
         v-if="hasHTML(preview)"
         :class="{ active: hasHTML(preview) }"
         class="tab-pane"
         id="preview-html"
-        :srcdoc="preview.previewHTML"
-        seamless
-        frameborder="0"
+        :content="preview.previewHTML"
         style="width: 100%"
-      ></iframe>
+      ></html-preview>
       <div class="tab-pane" :class="{ active: !hasHTML(preview) }" id="preview-plain" v-html="formatMessagePlain(preview)"></div>
       <div class="tab-pane" id="preview-source">{{ getSource(preview) }}</div>
       <div class="tab-pane" id="preview-mime">

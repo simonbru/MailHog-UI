@@ -1,16 +1,4 @@
 
-// TODO: target blank
-// mailhogApp.directive('targetBlank', function(){
-//   return {
-//     link : function(scope, element, attributes){
-//       element.on('load', function() {
-//         var a = element.contents().find('a');
-//         a.attr('target', '_blank');
-//       });
-//     }
-//   };
-// });
-
 function guid() {
   function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
@@ -21,19 +9,21 @@ function guid() {
          s4() + '-' + s4() + s4() + s4()
 }
 
-// TODO: ngKeyEnter
-// mailhogApp.directive('ngKeyEnter', function () {
-//   return function (scope, element, attrs) {
-//     element.bind("keydown keypress", function (event) {
-//       if(event.which === 13) {
-//         scope.$apply(function (){
-//           scope.$eval(attrs.ngKeyEnter);
-//         });
-//         event.preventDefault();
-//       }
-//     });
-//   };
-// });
+// TODO: configure jquery errors
+
+Vue.component('html-preview', {
+  props: {
+    content: String,
+  },
+  template: `<iframe :srcdoc="content" seamless frameborder="0"></iframe>`,
+  mounted() {
+    this.$el.addEventListener('load', () => {
+      this.$el.contentDocument.querySelectorAll('a').forEach(el => {
+        el.setAttribute('target', '_blank')
+      })
+    })
+  },
+})
 
 new Vue({
   el: '#app',
@@ -71,6 +61,7 @@ new Vue({
       countMessages: 0,
       totalMessages: 0,
 
+      searchMessages: [],
       startSearchMessages: 0,
       countSearchMessages: 0,
       totalSearchMessages: 0,
@@ -99,27 +90,23 @@ new Vue({
     this.getJim()
   },
   methods: {
-    truc() {
-      console.log("truc")
-    },
     getJim() {
-      // TODO: does this work ?
       var url = this.host + 'api/v2/jim'
-      $.get(url).success(data => {
+      $.get(url).done(data => {
         this.jim = data
-      }).error(() => {
+      }).fail(() => {
         this.jim = null
       })
     },
     enableJim() {
       var url = this.host + 'api/v2/jim'
-      $.post(url).success(data => {
+      $.post(url).done(data => {
         this.getJim()
       })
     },
     disableJim() {
       var url = this.host + 'api/v2/jim'
-      $.delete(url).success(data => {
+      $.ajax(url, { method: 'DELETE' }).done(data => {
         this.getJim()
       })
     },
@@ -151,7 +138,6 @@ new Vue({
       )
       this.source = new WebSocket(host + 'api/v2/websocket')
       this.source.addEventListener('message', e => {
-        // TODO: $apply
         this.totalMessages++
         if (this.startIndex > 0) {
           this.startIndex++
@@ -201,11 +187,11 @@ new Vue({
     },
 
     tryDecodeMime(str) {
+      // Handle [0] indexing on undefined
       return unescapeFromMime(str)
     },
   
     resizePreview() {
-      if ($('.tab-content').length === 0) return  // TODO: necessary ?
       $('.tab-content').height($(window).innerHeight() - $('.tab-content').offset().top)
       $('.tab-content .tab-pane').height($(window).innerHeight() - $('.tab-content').offset().top)
     },
@@ -254,14 +240,13 @@ new Vue({
           return "bg-warning" // pending
         },
         done() {
-          //delete $scope.eventsPending[eID]
+          //delete $vm.eventsPending[eID]
           this.complete = true
           $vm.eventDone++
           if (this.failed) {
             // console.log("Failed event '" + e.name + "' with id '" + eID + "'")
           } else {
             // console.log("Completed event '" + e.name + "' with id '" + eID + "'")
-            // TODO: setTimeout works ?
             setTimeout(() => {
               this.remove()
             }, 10000)
@@ -277,13 +262,13 @@ new Vue({
           if (e.failed) {
             $vm.eventFailed--
           }
-          delete $vm.eventsPending[eID]
+          $vm.$delete($vm.eventsPending, eID)
           $vm.eventDone--
           $vm.eventCount--
           return false
         }
       }
-      this.eventsPending[eID] = e
+      this.$set(this.eventsPending, eID, e)
       this.eventCount++
       return e
     },
@@ -303,7 +288,7 @@ new Vue({
       } else {
         url += "?limit=" + this.itemsPerPage
       }
-      $.get(url).success(data => {
+      $.get(url).done(data => {
         this.messages = data.items
         this.totalMessages = data.total
         this.countMessages = data.count
@@ -349,7 +334,7 @@ new Vue({
       if (this.startIndex > 0) {
         url += "&start=" + this.startIndex
       }
-      $.get(url).success(data => {
+      $.get(url).done(data => {
         this.searchMessages = data.items
         this.totalSearchMessages = data.total
         this.countSearchMessages = data.count
@@ -372,7 +357,7 @@ new Vue({
       } else {
         this.preview = message
         var e = this.startEvent("Loading message", message.ID, "glyphicon-download-alt")
-        $.get(this.host + 'api/v1/messages/' + message.ID).success(data => {
+        $.get(this.host + 'api/v1/messages/' + message.ID).done(data => {
           this.cache[message.ID] = data
   
           // FIXME
@@ -399,7 +384,7 @@ new Vue({
             const pat = str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1")
             h = h.replace(new RegExp(pat, 'g'), data.$cidMap[c])
           }
-          // TODO $sce
+          // TODO: try with complex HTML emails
           data.previewHTML = h
           this.preview = data
           preview = this.cache[message.ID]
@@ -467,7 +452,6 @@ new Vue({
         /(https?:\/\/)([-[\]A-Za-z0-9._~:/?#@!$()*+,;=%]|&amp;|&#39;)+/g,
         '<a href="$&" target="_blank">$&</a>'
       )
-      // TODO: what is $sce ?
       return formatted
     },
   
@@ -569,7 +553,7 @@ new Vue({
     releaseOne(message) {
       this.releasing = message
   
-      $.get(this.host + 'api/v2/outgoing-smtp').success(data => {
+      $.get(this.host + 'api/v2/outgoing-smtp').done(data => {
         this.outgoingSMTP = data
         $('#release-one').modal('show')
       })
@@ -600,9 +584,9 @@ new Vue({
         }
       }
   
-      $.post(this.host + 'api/v1/messages/' + message.ID + '/release', authcfg).success(() => {
+      $.post(this.host + 'api/v1/messages/' + message.ID + '/release', authcfg).done(() => {
         e.done()
-      }).error(err => {
+      }).fail(err => {
         e.fail()
         e.error = err
       })
@@ -621,8 +605,10 @@ new Vue({
     deleteAllConfirm() {
       $('#confirm-delete-all').modal('hide')
       var e = this.startEvent("Deleting all messages", null, "glyphicon-remove-circle")
-      // TODO: jquery delete
-      $.delete(this.host + 'api/v1/messages').success(() => {
+      $.ajax(
+        this.host + 'api/v1/messages',
+        { method: 'DELETE', dataType: 'text' }
+      ).done(() => {
         this.refresh()
         this.preview = null
         e.done()
@@ -631,8 +617,13 @@ new Vue({
   
     deleteOne(message) {
       var e = this.startEvent("Deleting message", message.ID, "glyphicon-remove")
-      $.delete(this.host + 'api/v1/messages/' + message.ID).success(() => {
-        if (this.preview._id == message._id) this.preview = null
+      $.ajax(
+        this.host + 'api/v1/messages/' + message.ID,
+        { method: 'DELETE', dataType: 'text' }
+      ).done(() => {
+        if (this.preview && this.preview._id == message._id) {
+          this.preview = null
+        }
         this.refresh()
         e.done()
       })
