@@ -187,8 +187,14 @@ new Vue({
     },
 
     tryDecodeMime(str) {
-      // Handle [0] indexing on undefined
-      return unescapeFromMime(str)
+      // TODO: Handle [0] indexing on undefined
+      // TODO: different component for this ?
+      try {
+        return unescapeFromMime(str)
+      } catch(e) {
+        console.error(e)
+        return "<Could not decode>"
+      }
     },
   
     resizePreview() {

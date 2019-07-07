@@ -182,7 +182,13 @@ mailhogApp.controller('MailCtrl', function ($scope, $http, $sce, $timeout) {
   }
 
   $scope.tryDecodeMime = function(str) {
-    return unescapeFromMime(str)
+    try {
+      return unescapeFromMime(str)
+    } catch(e) {
+      console.error(e)
+      return "<Could not decode>"
+    }
+    
   }
 
   $scope.resizePreview = function() {
