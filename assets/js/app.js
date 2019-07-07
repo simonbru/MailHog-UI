@@ -564,7 +564,11 @@ new Vue({
         }
       }
   
-      $.post(this.host + 'api/v1/messages/' + message.ID + '/release', authcfg).done(() => {
+      $.post({
+        url: this.host + 'api/v1/messages/' + message.ID + '/release',
+        data: JSON.stringify(authcfg),
+        contentType: 'application/json',
+      }).done(() => {
         e.done()
       }).fail(err => {
         e.fail()
