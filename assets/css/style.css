@@ -160,3 +160,7 @@
 .mime-part {
   padding: 10px;
 }
+
+[v-cloak] {
+  display: none;
+}
